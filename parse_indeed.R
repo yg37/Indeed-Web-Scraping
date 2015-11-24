@@ -16,3 +16,25 @@ for (i in 1:length(files)){
     counter = counter + 1
   }
 }
+
+htmls = dir("data/links",pattern = "*.html",full.names = TRUE)
+
+job_summary <- rep(NA, length(htmls))
+
+for (i in 1:length(htmls))
+{
+  html <- read_html(htmls[i])
+  
+  content <- html_nodes(html, "#job_summary") %>% html_text()
+  
+  job_summary[i] <- ifelse(length(content),tolower(content),NA)
+  
+}
+
+for(i in 1:length(job_summary))
+{
+  qualifications <- str_extract_all(job_summary[i],"qualifications.*")
+  
+  responsibilities <- str_extract_all(job_summary[i],"responsibilities.*qualifications")
+}
+

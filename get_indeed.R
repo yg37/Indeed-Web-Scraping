@@ -1,6 +1,7 @@
-require(stringr)
-require(rvest)
-require(magrittr)
+library(xml2)
+library(stringr)
+library(rvest)
+library(magrittr)
 
 get_indeed <- function(start,dest){
   url <- paste0("http://rss.indeed.com/rss?q=statistics+data&l=North+Carolina&start=",start)
