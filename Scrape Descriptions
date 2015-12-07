@@ -4,6 +4,7 @@ require(magrittr)
 require(koRpus)
 require(openNLP)
 require(tm)
+library(wordcloud)
 
 
 files <- dir("data/indeed/", pattern = "*.html", full.names = TRUE)
@@ -76,7 +77,7 @@ dtm <- dtm[,-c(non,irrelevant)]
 v = sort(colSums(dtm), decreasing=TRUE);
 myNames = names(v);
 d = data.frame(word=myNames, freq=v)
-wordcloud(d$word, colors=c(3,4), random.color=FALSE, d$freq,max.words=200)
+wordcloud(d$word, colors=sample(6), random.color=FALSE, d$freq,max.words=200)
 
     
     
