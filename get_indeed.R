@@ -4,7 +4,7 @@ library(rvest)
 library(magrittr)
 
 get_indeed <- function(start,dest){
-  url <- paste0("http://rss.indeed.com/rss?q=statistics+data&l=North+Carolina&start=",start)
+  url <- paste0("http://rss.indeed.com/rss?q=Statistics&l=California&start=",start)
   download.file(url,destfile=dest,method="wget")
 }
 

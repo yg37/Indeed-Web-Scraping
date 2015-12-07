@@ -77,7 +77,8 @@ dtm <- dtm[,-c(non,irrelevant)]
 v = sort(colSums(dtm), decreasing=TRUE);
 myNames = names(v);
 d = data.frame(word=myNames, freq=v)
-wordcloud(d$word, colors=sample(6), random.color=FALSE, d$freq,max.words=200)
+wordcloud(d$word, d$freq,random.color=T,scale = c(4,.2), 
+          min.freq = 2,max.words=30)
 
     
     
