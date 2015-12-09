@@ -1,4 +1,11 @@
 #Initialize Shiny Package#
+require(stringr)
+require(rvest)
+require(magrittr)
+require(koRpus)
+require(openNLP)
+require(tm)
+library(wordcloud)
 library(shiny)
 
 #Set conditional vectors for use in UI #
