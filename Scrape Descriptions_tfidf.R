@@ -106,5 +106,5 @@ weight_matrix <- weight_matrix[,-c(non,irrelevant)]
 v = sort(colSums(weight_matrix), decreasing=TRUE);
 myNames = names(v);
 d = data.frame(word=myNames, freq=v)
-wordcloud(d$word, colors=brewer.pal(8,"Dark2"), d$freq,max.words=500)
+wordcloud(d$word, colors=brewer.pal(8,"Dark2"), d$freq,max.words=500,min.freq=min(d$freq))
 
