@@ -53,7 +53,7 @@ dtm <- as.matrix(DocumentTermMatrix(corp))
 
  
 
-TFIDF
+#TFIDF
 norm <- dtm/rowSums(dtm) #normalize the matrix
 nonZero <- colSums(norm != 0)
 weight <- log(dim(norm)[2]/nonZero)
