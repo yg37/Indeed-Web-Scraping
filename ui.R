@@ -8,15 +8,7 @@ require(tm)
 library(wordcloud)
 library(shiny)
 
-#Set conditional vectors for use in UI #
-field = c("Statistics", "Computer Science", 
-          "Management", "Accounting",
-          "Marketing")
-names(field) = field
-states = read.table("states.txt",header = F, 
-                    sep = "\n", stringsAsFactors = F) 
-states = states$V1
-names(states) = states
+include = c("Yes" = "yes" , "No" = "no")
 
 shinyUI(
   fluidPage(
@@ -26,19 +18,31 @@ shinyUI(
       "Beautiful Banana Job Search Engine"
     ),
     sidebarPanel(
-      #Field Section#
+      #Input the job field to search#
       h3("Field"),
       
-      #Selection Input for Prior on Number of Socks#
-      selectInput("field_find", "Choose Your Interested Field", field),
+      textInput("field", label = NULL, value = "", width = NULL),
       
       hr(),
       
-      #Hyperparmeter Selection based on priors above#
+      #Input the location to search
       h3("Location:"),
       
-      selectInput("loc_find", "Choose Your Interested States", states)
+      textInput("loc", label = NULL, value = "", width = NULL),
       
+      hr(),
+      
+      #Input the max number of word to include in the summary
+      h3("Max Word:"),
+      
+      sliderInput("num", "Input the max number of words you want to show:",
+                  min = 10, max = 100, value = 30),
+      
+      
+      #To choose whether to inlcude a detailed table or not
+      h3("Output Option"),
+      
+      selectInput("include", "Would you like to see the detailed word summary:", include)
     ),
       
     mainPanel(
@@ -46,14 +50,19 @@ shinyUI(
       #Additional Results View#
       h3("Key Words"),
       hr(),
-      
+      #The panel to show the word cloud plot.
       tabsetPanel(
         tabPanel("Word Cloud", plotOutput("plot")) 
       ),
       
-      tabsetPanel(
-        tabPanel("Table",
-                 tableOutput("table"))
+      #The panel to demonstrate the detailed table if user requires
+      conditionalPanel(
+        #If want summary table from Input, include the table#
+        condition = "input.include == 'yes'",
+        tabsetPanel(
+          tabPanel("Detailed Word Summary",
+                   tableOutput("table"))
+        )
       )
     )
   )

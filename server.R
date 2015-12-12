@@ -1,10 +1,11 @@
 shinyServer(
   function(input, output, session)
   {
+    #reactive part of the data frame
     d=reactive(
     {
     get_indeed <- function(start,dest){
-      url <- paste0("http://rss.indeed.com/rss?q=",input$field_find,"&l=",input$loc_find,"&start=",start)
+      url <- paste0("http://rss.indeed.com/rss?q=",input$field,"&l=",input$loc,"&start=",start)
       download.file(url,destfile=dest,method="wget")
     }
     
@@ -25,7 +26,6 @@ shinyServer(
         html_nodes("description") %>% html_text() 
       descriptions <- c(descriptions,new)
     }
-    
     
     pos <- function(ele){
       sent_token_annotator <- Maxent_Sent_Token_Annotator()
@@ -58,12 +58,30 @@ shinyServer(
     
     dtm <- as.matrix(DocumentTermMatrix(corp))
     
+    
+    
+    
+    
+    #TFIDF
+    norm <- dtm/rowSums(dtm) #normalize the matrix
+    nonZero <- colSums(norm != 0)
+    weight <- log(dim(norm)[2]/nonZero)
+    weight_sorted <- sort(weight,decreasing=TRUE)
+    names <- names(weight_sorted)
+    weight_matrix <- matrix(0,dim(norm)[1],dim(norm)[2])
+    for (i in 1:dim(norm)[2]){
+      weight_matrix[,i] <- norm[,i]*weight[i]
+    }
+    colnames(weight_matrix) <- colnames(norm)
+    rownames(weight_matrix) <- rownames(norm)
+    
     sent_token_annotator <- Maxent_Sent_Token_Annotator()
     word_token_annotator <- Maxent_Word_Token_Annotator()
-    annotations <- annotate(colnames(dtm), list(sent_token_annotator, word_token_annotator))
+    annotations <- annotate(colnames(weight_matrix), list(sent_token_annotator, word_token_annotator))
     pos_tag_annotator <- Maxent_POS_Tag_Annotator()
     pos_tag_annotator
-    pos <- annotate(colnames(dtm), pos_tag_annotator, annotations)
+    pos <- annotate(colnames(weight_matrix), pos_tag_annotator, annotations)
+    
     
     non <- c()
     for (i in 2:length(pos)){
@@ -72,36 +90,47 @@ shinyServer(
       }
     }
     
+    #non_verb <- c()
+    #for (i in 2:length(pos)){
+    #if (pos$features[[i]]$POS != "VBD" ||pos$features[[i]]$POS != "VBG" ){
+    #non_verb<- c(non_verb,i-1)
+    #}
+    #}
+    
     irrelevant <- c()
-    for (i in 1:dim(dtm)[2]){
-      if (str_detect(colnames(dtm)[i],"job")||str_detect(colnames(dtm)[i],"http")||str_detect(colnames(dtm)[i],"indeed")){
+    for (i in 1:dim(weight_matrix)[2]){
+      if (str_detect(colnames(weight_matrix)[i],"job")||str_detect(colnames(weight_matrix)[i],"http")||str_detect(colnames(weight_matrix)[i],"indeed")){
         irrelevant <- c(irrelevant,i)
       }
     }
     
-    dtm <- dtm[,-c(non,irrelevant)]
+    #weight_matrix <- weight_matrix[,-irrelevant]
+    weight_matrix <- weight_matrix[,-c(non,irrelevant)]
+    #weight_matrix <-weight_matrix[,-non_verb]
+    #foreach(i = 1:dim(weight_matrix)[2]) %do% if (!pos(colnames(weight_matrix)[i])){weight_matrix[,-i]}  
+    
+    
     
     #Source: http://www.r-bloggers.com/text-mining/#
-    v = sort(colSums(dtm), decreasing=TRUE);
+    v = sort(colSums(weight_matrix), decreasing=TRUE);
     myNames = names(v);
-    d = data.frame(word=myNames, freq=v) 
-    row.names(d) = 1:nrow(d)
-    d
+    d = data.frame(word=myNames, freq=v)
     }
     )
     
     #Render Plots for Total Number of Socks and Proportion of Socks#
     output$plot = renderPlot(
       {
-        wordcloud(d()$word, d()$freq, scale = c(4,1.5),
-                  color=c("gold","darkturquoise","lightsalmon4","orange2"), min.freq = 2, max.words=30)
+        wordcloud(d()$word, colors=brewer.pal(8,"Dark2"), 
+                  d()$freq, max.words=input$num, min.freq=min(d()$freq))
       }
     )
     
     output$table = renderTable(
       {
-        table=data.frame(d()[1:15,],16:30,d()[16:30,])
-        names(table)=c("Word","Frequncy","","Word","Frequncy")
+        table = d()[1:input$num,]
+        rownames(table) = 1:input$num
+        names(table) = c("Word","Frequency")
         table
       }
     )
