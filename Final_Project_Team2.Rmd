@@ -1,5 +1,5 @@
 ---
-title: "Final_Project_Team2"
+title: "Beautiful Bananas Final Project"
 runtime: shiny
 output: html_document
 ---
@@ -8,7 +8,8 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-#Beautiful Bananas Final Project
+##Team 2: Fu Wen, Sanjay Hariharan, Sophie Guo, Xiao Xu
+     
 
 ###1.Introduction
 All of the members of the Beautiful Bananas group are Masters students, hoping to enter the workforce after graduation. As students of Statistics, organizations all over the country want our skillset, but we are specifically curious what elements of our skillset they are interested in. We decided to web scrape Indeed.com, a website posting jobs of all kinds for students like us. We are specifically curious about what words appear most in job postings for Statisticians, as well as other fields. Ultimately, we want to create a Shiny App that allows the user to dynamically select a field of study, number of words, location, and other specifications, showing the user a word cloud detailing the frequency of words appearing for those specifications on Indeed.com. 
