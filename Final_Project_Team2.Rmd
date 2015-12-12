@@ -83,14 +83,14 @@ shinyApp(
       #Input the job field to search#
       h3("Field"),
       
-      textInput("field", label = NULL, value = "", width = NULL),
+      textInput("field", label = NULL, value = "Statistics", width = NULL),
       
       hr(),
       
       #Input the location to search
       h3("Location:"),
       
-      textInput("loc", label = NULL, value = "", width = NULL),
+      textInput("loc", label = NULL, value = "North Carolina", width = NULL),
       
       hr(),
       
@@ -248,7 +248,7 @@ shinyApp(
     }
     )
     
-    #Render Plots for Total Number of Socks and Proportion of Socks#
+    #Render Plots for word cloud plot
     output$plot = renderPlot(
       {
         wordcloud(d()$word, colors=brewer.pal(8,"Dark2"), 
