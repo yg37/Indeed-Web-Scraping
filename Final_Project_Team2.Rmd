@@ -1,0 +1,283 @@
+---
+title: "Final_Project_Team2"
+runtime: shiny
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+#Beautiful Bananas Final Project
+
+###1.Introduction
+All of the members of the Beautiful Bananas group are Masters students, hoping to enter the workforce after graduation. As students of Statistics, organizations all over the country want our skillset, but we are specifically curious what elements of our skillset they are interested in. We decided to web scrape Indeed.com, a website posting jobs of all kinds for students like us. We are specifically curious about what words appear most in job postings for Statisticians, as well as other fields. Ultimately, we want to create a Shiny App that allows the user to dynamically select a field of study, number of words, location, and other specifications, showing the user a word cloud detailing the frequency of words appearing for those specifications on Indeed.com. 
+
+
+###2.Methods
+2.1 Posting Scraping      
+     
+At the beginning, we used a keyword, i.e. “Statistical Analyst”, to get search result pages with 10 entries on each one. Then we went to each job posting page to download the html file. We need to find elements on a particular job posting. Because indeed.com does not provide a format template for employers, so it is very hard to extract the desired text chunks since they are discrete and not in order. We used a combination of keywords’ roots and regular expression to extract the chuck.    
+        
+        
+```{r}
+#Former combination of keywords’ roots and regular expression
+#q1 <- str_extract_all(job_summary[i],"qualifi[a-z]+[: ]+.+? {2}") %>% unlist()
+#q3 <- str_extract_all(job_summary[i],"require[a-z]+[: ]+.+? {2}") %>% unlist()
+#q4 <- str_extract_all(job_summary[i],"demand[a-z]+[: ]+.+? {2}") %>% unlist()
+#q5 <- str_extract_all(job_summary[i],"essentials[a-z]+[: ]+.+? {2}") %>% unlist()
+#q6 <- str_extract_all(job_summary[i],"must[a-z]+[: ]+.+? {2}") %>% unlist()
+#q7 <- str_extract_all(job_summary[i],"should[a-z]+[: ]+.+? {2}") %>% unlist()
+  
+```
+        
+        
+        
+2.2. Description Mining     
+    
+The success ratio of posting scraping was around 50%, so we decided to deploy another approach. We abandoned job postings and turned back to search result pages. On the search result page, there is a description for each job entry. So we extracted descriptions and performed the text mining. Details are as followed.   
+        
+Our first step is cleaning the text of numbers, stop words, stem words and any html node tags resulting from web scraping. Then we perform tf-idf to the document term matrix to weigh the words based on their frequencies. After studying the scraped descriptions, we realize that qualifications appear mostly as nouns while verbs are mostly related to responsibilities. As a result, we use the openNLP package in R to find the part-of-speech of each word and retain only nouns for our analysis. At this point, we have filtered out the irrelevant and the most frequent, non-informative words. Then we use word cloud to visualize the highest weighted words.       
+
+```{r}
+
+source("get_indeed.R")
+source("parse_indeed.R")
+source("Scrape Descriptions.R")
+
+
+```
+
+Above is an example for wordcloud output.
+
+
+###3.Visualization        
+       
+For the Shiny App, once a user choose his/her interested job field and location, our app will display a weighted word graph and a table with top 30 frequent words if applicable. The user can choose from a general job field, including Statistics, Computer Science, Management, Accounting, Marketing. Our analysis are based on each state. From the visualization output, a user could easily identify the most matched skillsets along with duties for his/her ideal job.      
+        
+Below is our shiny app: 
+
+```{r, echo=FALSE}
+
+#Initialize Shiny Package#
+require(stringr)
+require(rvest)
+require(magrittr)
+require(koRpus)
+require(openNLP)
+require(tm)
+library(wordcloud)
+library(shiny)
+
+include = c("Yes" = "yes" , "No" = "no")
+
+shinyApp(
+  
+  ui = fluidPage(
+    
+    #Set Title Panel#
+    titlePanel(
+      "Beautiful Banana Job Search Engine"
+    ),
+    sidebarPanel(
+      #Input the job field to search#
+      h3("Field"),
+      
+      textInput("field", label = NULL, value = "", width = NULL),
+      
+      hr(),
+      
+      #Input the location to search
+      h3("Location:"),
+      
+      textInput("loc", label = NULL, value = "", width = NULL),
+      
+      hr(),
+      
+      #Input the max number of word to include in the summary
+      h3("Max Word:"),
+      
+      sliderInput("num", "Input the max number of words you want to show:",
+                  min = 10, max = 100, value = 30),
+      
+      
+      #To choose whether to inlcude a detailed table or not
+      h3("Output Option"),
+      
+      selectInput("include", "Would you like to see the detailed word summary:", include)
+    ),
+      
+    mainPanel(
+      
+      #Additional Results View#
+      h3("Key Words"),
+      hr(),
+      #The panel to show the word cloud plot.
+      tabsetPanel(
+        tabPanel("Word Cloud", plotOutput("plot")) 
+      ),
+      
+      #The panel to demonstrate the detailed table if user requires
+      conditionalPanel(
+        #If want summary table from Input, include the table#
+        condition = "input.include == 'yes'",
+        tabsetPanel(
+          tabPanel("Detailed Word Summary",
+                   tableOutput("table"))
+        )
+      )
+    )
+  ),
+  
+  server = function(input, output, session)
+  {
+    #reactive part of the data frame
+    d=reactive(
+    {
+    get_indeed <- function(start,dest){
+      url <- paste0("http://rss.indeed.com/rss?q=",input$field,"&l=",input$loc,"&start=",start)
+      download.file(url,destfile=dest,method="wget")
+    }
+    
+    dir.create("data/indeed/",recursive=TRUE,showWarnings=FALSE)
+    
+    for(i in seq(10,100,length.out=10)){
+      dest = paste0("data/indeed/",i/10,".html")
+      
+      #Call function based on those values, a destination directory, and a specified limit#
+      get_indeed(i, dest)
+    }
+    
+    files <- dir("data/indeed/", pattern = "*.html", full.names = TRUE)
+    
+    descriptions <-c() #create a vector to store the results
+    for (i in 1:length(files)){
+      new <- read_xml(files[i]) %>%
+        html_nodes("description") %>% html_text() 
+      descriptions <- c(descriptions,new)
+    }
+    
+    pos <- function(ele){
+      sent_token_annotator <- Maxent_Sent_Token_Annotator()
+      word_token_annotator <- Maxent_Word_Token_Annotator()
+      annotations <- annotate(ele, list(sent_token_annotator, word_token_annotator))
+      pos_tag_annotator <- Maxent_POS_Tag_Annotator()
+      pos_tag_annotator
+      pos <- annotate(ele, pos_tag_annotator, annotations)
+      return (pos$features[[2]]$POS == "NN")
+    }
+    
+    #get rid of the tags#
+    for (i in 1:length(descriptions)){
+      if (!is.na(str_extract(descriptions[i],".*\\."))){
+        descriptions[i] = str_extract(descriptions[i],".*\\.")
+      }
+    }
+    
+    #remove duplicate entries
+    descriptions <- unique(descriptions) 
+    
+    
+    corp <- Corpus(VectorSource(descriptions))
+    #dtm = DocumentTermMatrix(corp,control=list(removePunctuation=TRUE,removeNumbers=TRUE,stemming=TRUE))
+    
+    corp<-tm_map(corp,content_transformer(removeNumbers)) #convert to lower case#
+    corp<-tm_map(corp,removePunctuation) #remove punctuation#
+    #corp <- tm_map(corp, stemDocument)
+    corp <-tm_map(corp, removeWords, stopwords('english'))
+    
+    dtm <- as.matrix(DocumentTermMatrix(corp))
+    
+    
+    
+    
+    
+    #TFIDF
+    norm <- dtm/rowSums(dtm) #normalize the matrix
+    nonZero <- colSums(norm != 0)
+    weight <- log(dim(norm)[2]/nonZero)
+    weight_sorted <- sort(weight,decreasing=TRUE)
+    names <- names(weight_sorted)
+    weight_matrix <- matrix(0,dim(norm)[1],dim(norm)[2])
+    for (i in 1:dim(norm)[2]){
+      weight_matrix[,i] <- norm[,i]*weight[i]
+    }
+    colnames(weight_matrix) <- colnames(norm)
+    rownames(weight_matrix) <- rownames(norm)
+    
+    sent_token_annotator <- Maxent_Sent_Token_Annotator()
+    word_token_annotator <- Maxent_Word_Token_Annotator()
+    annotations <- annotate(colnames(weight_matrix), list(sent_token_annotator, word_token_annotator))
+    pos_tag_annotator <- Maxent_POS_Tag_Annotator()
+    pos_tag_annotator
+    pos <- annotate(colnames(weight_matrix), pos_tag_annotator, annotations)
+    
+    
+    non <- c()
+    for (i in 2:length(pos)){
+      if (pos$features[[i]]$POS != "NN"){
+        non <- c(non,i-1)
+      }
+    }
+    
+    #non_verb <- c()
+    #for (i in 2:length(pos)){
+    #if (pos$features[[i]]$POS != "VBD" ||pos$features[[i]]$POS != "VBG" ){
+    #non_verb<- c(non_verb,i-1)
+    #}
+    #}
+    
+    irrelevant <- c()
+    for (i in 1:dim(weight_matrix)[2]){
+      if (str_detect(colnames(weight_matrix)[i],"job")||str_detect(colnames(weight_matrix)[i],"http")||str_detect(colnames(weight_matrix)[i],"indeed")){
+        irrelevant <- c(irrelevant,i)
+      }
+    }
+    
+    #weight_matrix <- weight_matrix[,-irrelevant]
+    weight_matrix <- weight_matrix[,-c(non,irrelevant)]
+    #weight_matrix <-weight_matrix[,-non_verb]
+    #foreach(i = 1:dim(weight_matrix)[2]) %do% if (!pos(colnames(weight_matrix)[i])){weight_matrix[,-i]}  
+    
+    
+    
+    #Source: http://www.r-bloggers.com/text-mining/#
+    v = sort(colSums(weight_matrix), decreasing=TRUE);
+    myNames = names(v);
+    d = data.frame(word=myNames, freq=v)
+    }
+    )
+    
+    #Render Plots for Total Number of Socks and Proportion of Socks#
+    output$plot = renderPlot(
+      {
+        wordcloud(d()$word, colors=brewer.pal(8,"Dark2"), 
+                  d()$freq, max.words=input$num, min.freq=min(d()$freq))
+      }
+    )
+    
+    output$table = renderTable(
+      {
+        table = d()[1:input$num,]
+        rownames(table) = 1:input$num
+        names(table) = c("Word","Frequency")
+        table
+      }
+    )
+    
+  },
+  
+  #options = list(height = 500)
+)
+
+```
+
+            
+###4.Challenge and Next Step      
+       
+The biggest challenge is to improve the accuracy of keyword match in the process of web text mining. Since employers write the job posting on their own, the contents of different postings vary so much, from organization to format. Sometimes they even do not have segments, putting everything in a single paragraph instead. The keywords we previously thought about are also difficult to find. For example, a posting list bullet points for “requirements” while another have sentences starting with “A qualified candidate should”.        
+       
+To solve the problem, we process job descriptions on the search result page, finding nouns to serve as qualifications. This involve manual work to read some job descriptions to look for potential patterns. There is no doubt we will miss something with this approach. For the long term process, it is necessary to figure out how to improve the text matching rate continuously.
+
+
+
