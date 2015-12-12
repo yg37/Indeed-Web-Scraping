@@ -17,11 +17,11 @@ All of the members of the Beautiful Bananas group are Masters students, hoping t
 ###2.Methods
 2.1 Posting Scraping      
      
-At the beginning, we used a keyword, i.e. “Statistical Analyst”, to get search result pages with 10 entries on each one. Then we went to each job posting page to download the html file. We need to find elements on a particular job posting. Because indeed.com does not provide a format template for employers, so it is very hard to extract the desired text chunks since they are discrete and not in order. We used a combination of keywords’ roots and regular expression to extract the chuck.    
+At the beginning, we used a keyword, i.e. “Statistical Analyst”, to get search result pages with 10 entries on each one. Then we went to each job posting page to download the html file. We need to find elements on a particular job posting. Because indeed.com does not provide a format template for employers, so it is very hard to extract the desired text chunks since they are discrete and not in order. We used a combination of keywords’ roots and regular expression to extract the chuck in the parse_indeed.R.    
         
         
 ```{r}
-#Former combination of keywords’ roots and regular expression
+#Former combination of keywords’ roots and regular expression in parse_indeed.R#
 #q1 <- str_extract_all(job_summary[i],"qualifi[a-z]+[: ]+.+? {2}") %>% unlist()
 #q3 <- str_extract_all(job_summary[i],"require[a-z]+[: ]+.+? {2}") %>% unlist()
 #q4 <- str_extract_all(job_summary[i],"demand[a-z]+[: ]+.+? {2}") %>% unlist()
@@ -42,8 +42,8 @@ Our first step is cleaning the text of numbers, stop words, stem words and any h
 ```{r}
 
 source("get_indeed.R")
-source("parse_indeed.R")
-source("Scrape Descriptions.R")
+#source("parse_indeed.R")
+source("Scrape Descriptions_tfidf.R")
 
 
 ```
@@ -53,7 +53,7 @@ Above is an example for wordcloud output.
 
 ###3.Visualization        
        
-For the Shiny App, once a user choose his/her interested job field and location, our app will display a weighted word graph and a table with top 30 frequent words if applicable. The user can choose from a general job field, including Statistics, Computer Science, Management, Accounting, Marketing. Our analysis are based on each state. From the visualization output, a user could easily identify the most matched skillsets along with duties for his/her ideal job.      
+For the Shiny App, once a user input his/her interested job field and location, our app will display a weighted word graph. If the user is interested in details of job postings, he/she can choose to display a detailed table with top N frequent words if applicable, in which N is also a parameter given by user. The user can choose N to be an integer from 10 to 100.  The user is able to put any job field in the input text box. The app will take the text and perform web scraping task with input text. The location value accepts either city or state.  In general, Our analysis is highly customized. From the visualization output, a user could easily identify the most matched skillsets along with duties for his/her ideal job.      
         
 Below is our shiny app: 
 
@@ -277,7 +277,9 @@ shinyApp(
        
 The biggest challenge is to improve the accuracy of keyword match in the process of web text mining. Since employers write the job posting on their own, the contents of different postings vary so much, from organization to format. Sometimes they even do not have segments, putting everything in a single paragraph instead. The keywords we previously thought about are also difficult to find. For example, a posting list bullet points for “requirements” while another have sentences starting with “A qualified candidate should”.        
        
-To solve the problem, we process job descriptions on the search result page, finding nouns to serve as qualifications. This involve manual work to read some job descriptions to look for potential patterns. There is no doubt we will miss something with this approach. For the long term process, it is necessary to figure out how to improve the text matching rate continuously.
+To solve the problem, we process job descriptions on the search result page, finding nouns to serve as qualifications. This involve manual work to read some job descriptions to look for potential patterns. There is no doubt we will miss something with this approach. For the long term process, it is necessary to figure out how to improve the text matching rate continuously.     
+        
+Another limitation of our app is that when the user is waiting for output, an error might show on the screen even though the output will come out instead in a few seconds.
 
 
 
