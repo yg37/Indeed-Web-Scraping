@@ -4,7 +4,7 @@ runtime: shiny
 output: html_document
 ---
 
-```{r setup, include=FALSE}
+```{r setup, include = FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
@@ -40,7 +40,7 @@ The success ratio of posting scraping was around 50%, so we decided to deploy an
         
 Our first step is cleaning the text of numbers, stop words, stem words and any html node tags resulting from web scraping. Then we perform tf-idf to the document term matrix to weigh the words based on their frequencies. After studying the scraped descriptions, we realize that qualifications appear mostly as nouns while verbs are mostly related to responsibilities. As a result, we use the openNLP package in R to find the part-of-speech of each word and retain only nouns for our analysis. At this point, we have filtered out the irrelevant and the most frequent, non-informative words. Then we use word cloud to visualize the highest weighted words.       
 
-```{r}
+```{r, include = FALSE}
 
 source("get_indeed.R")
 #source("parse_indeed.R")
@@ -49,7 +49,6 @@ source("Scrape Descriptions_tfidf.R")
 
 ```
 
-Above is an example for wordcloud output.
 
 
 ###3.Visualization        
