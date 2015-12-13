@@ -18,7 +18,7 @@ All of the members of the Beautiful Bananas group are Masters students, hoping t
 ###2.Methods
 2.1 Posting Scraping      
      
-At the beginning, we used a keyword, i.e. “Statistical Analyst”, to get search result pages with 10 entries on each one. Then we went to each job posting page to download the html file. We need to find elements on a particular job posting. Because indeed.com does not provide a format template for employers, so it is very hard to extract the desired text chunks since they are discrete and not in order. We used a combination of keywords’ roots and regular expression to extract the chuck in the parse_indeed.R.    
+At the beginning, we use a keyword, i.e. “Statistical Analyst”, to get search result pages with 10 entries on each one. Then we go to each job posting page to download the html file. We need to find elements on a particular job posting. Because indeed.com does not provide a format template for employers, it is very hard to extract the desired text chunks since they are discrete and not in order. We use a combination of keywords’ roots and regular expression to extract the chuck in the parse_indeed.R.    
         
         
 ```{r}
@@ -36,9 +36,9 @@ At the beginning, we used a keyword, i.e. “Statistical Analyst”, to get sear
         
 2.2. Description Mining     
     
-The success ratio of posting scraping was around 50%, so we decided to deploy another approach. We abandoned job postings and turned back to search result pages. On the search result page, there is a description for each job entry. So we extracted descriptions and performed the text mining. Details are as followed.   
+The success rate of posting scraping is around 50%, so we decide to deploy another approach. We abandon job postings and switch back to search result pages. On the search result page, there is a description section for each job entry. So we extract descriptions and perform text mining. Details are as following:
         
-Our first step is cleaning the text of numbers, stop words, stem words and any html node tags resulting from web scraping. Then we perform tf-idf to the document term matrix to weigh the words based on their frequencies. After studying the scraped descriptions, we realize that qualifications appear mostly as nouns while verbs are mostly related to responsibilities. As a result, we use the openNLP package in R to find the part-of-speech of each word and retain only nouns for our analysis. At this point, we have filtered out the irrelevant and the most frequent, non-informative words. Then we use word cloud to visualize the highest weighted words.       
+Our first step is cleaning the text of numbers, stop words, stem words and any html node tags resulting from web scraping. Then we perform tf-idf to the document term matrix to weigh the words based on their frequencies. After studying the scraped descriptions, we realize that qualifications appear mostly as nouns while verbs are mostly related to responsibilities. As a result, we use the openNLP package in R to find the part-of-speech of each word and retain only nouns for our analysis. At this point, we have filtered out the irrelevant and the most frequent, non-informative words. We then use word cloud to visualize the highest weighted words.       
 
 ```{r, include = FALSE}
 
@@ -53,7 +53,7 @@ source("Scrape Descriptions_tfidf.R")
 
 ###3.Visualization        
        
-For the Shiny App, once a user input his/her interested job field and location, our app will display a weighted word graph. If the user is interested in details of job postings, he/she can choose to display a detailed table with top N frequent words if applicable, in which N is also a parameter given by user. The user can choose N to be an integer from 10 to 100.  The user is able to put any job field in the input text box. The app will take the text and perform web scraping task with input text. The location value accepts either city or state.  In general, Our analysis is highly customized. From the visualization output, a user could easily identify the most matched skillsets along with duties for his/her ideal job.      
+For the Shiny App, once a user inputs his/her interested job field and location, our app will display a weighted word graph. If the user is interested in details of job postings, he/she can choose to display a detailed table with the N most frequent words where N is a parameter given by user. The user can choose N to be an integer from 10 to 100.  The user is able to enter any job field into the input text box. The app will take the text and perform web scraping task with input text. The location value accepts either city or state. In general, Our analysis is highly customized. From the visualization output, a user could easily identify the most matched skillsets along with duties for his/her ideal job.      
         
 Below is our shiny app: 
 
@@ -276,9 +276,9 @@ shinyApp(
             
 ###4.Challenge and Next Step      
        
-The biggest challenge is to improve the accuracy of keyword match in the process of web text mining. Since employers write the job posting on their own, the contents of different postings vary so much, from organization to format. Sometimes they even do not have segments, putting everything in a single paragraph instead. The keywords we previously thought about are also difficult to find. For example, a posting list bullet points for “requirements” while another have sentences starting with “A qualified candidate should”.        
+The biggest challenge is to improve the accuracy of keyword match in the process of web text mining. Since employers write the job posting on their own, the contents of postings vary considerably in format with organizations. Sometimes they are not even segmented with everything in a single paragraph instead. The keywords we previously thought about are also difficult to find. For example, a posting list bullet points for “requirements” while another have sentences starting with “A qualified candidate should”.        
        
-To solve the problem, we process job descriptions on the search result page, finding nouns to serve as qualifications. This involve manual work to read some job descriptions to look for potential patterns. There is no doubt we will miss something with this approach. For the long term process, it is necessary to figure out how to improve the text matching rate continuously.     
+To solve the problem, we process job descriptions on the search result page, finding nouns to serve as qualifications. This involves manual work to read some job descriptions to look for potential patterns. There is no doubt we will miss something with this approach. For the long term process, it is necessary to figure out how to improve the text matching rate continuously.     
         
 Another limitation of our app is that when the user is waiting for output, an error might show on the screen even though the output will come out instead in a few seconds.
 
