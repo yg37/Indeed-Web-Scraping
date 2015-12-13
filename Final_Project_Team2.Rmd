@@ -278,7 +278,7 @@ shinyApp(
        
 The biggest challenge is to improve the accuracy of keyword match in the process of web text mining. Since employers write the job posting on their own, the contents of postings vary considerably in format with organizations. Sometimes they are not even segmented with everything in a single paragraph instead. The keywords we previously thought about are also difficult to find. For example, a posting list bullet points for “requirements” while another have sentences starting with “A qualified candidate should”.        
        
-To solve the problem, we process job descriptions on the search result page, finding nouns to serve as qualifications. This involves manual work to read some job descriptions to look for potential patterns. There is no doubt we will miss something with this approach. For the long term process, it is necessary to figure out how to improve the text matching rate continuously.     
+To solve the problem, we process job descriptions on the search result page using nouns as qualifications. This involves manual work to read some job descriptions to look for potential patterns. There is no doubt we will miss something with this approach. For the long term process, it is necessary to figure out how to improve the text matching rate continuously.     
         
 Another limitation of our app is that when the user is waiting for output, an error might show on the screen even though the output will come out instead in a few seconds.
 
